@@ -43,9 +43,20 @@ const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggle = document.getElementById('theme-toggle');
 const THEME_KEY = 'tetris-theme';
+const highscoreListEl = document.getElementById('highscore-list');
+const overlayHighscoreListEl = document.getElementById('overlay-highscore-list');
+const resetHighscoresBtn = document.getElementById('reset-highscores-btn');
+const newHighscoreForm = document.getElementById('new-highscore-form');
+const highscoreNameInput = document.getElementById('highscore-name-input');
+const saveHighscoreBtn = document.getElementById('save-highscore-btn');
+const HIGHSCORES_KEY = 'tetris-highscores';
+const MAX_HIGHSCORES = 5;
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 let gridColor;
+let combo, maxCombo;
+let pendingHighscoreIndex = -1;
+let pendingHighscoreEntry = null;
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -113,8 +124,13 @@ function clearLines() {
     score += (LINE_SCORES[cleared] || 0) * level;
     level = Math.floor(lines / 10) + 1;
     dropInterval = Math.max(100, 1000 - (level - 1) * 90);
+    combo++;
+    if (combo > maxCombo) maxCombo = combo;
     updateHUD();
+  } else {
+    combo = 0;
   }
+  return cleared;
 }
 
 function ghostY() {
@@ -223,12 +239,112 @@ function drawNext() {
       drawBlock(nextCtx, offX + c, offY + r, shape[r][c], NB);
 }
 
+function loadHighscores() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(HIGHSCORES_KEY));
+    if (!Array.isArray(raw)) return [];
+    return raw.filter(e => e && typeof e.score === 'number');
+  } catch {
+    return [];
+  }
+}
+
+function saveHighscores(list) {
+  localStorage.setItem(HIGHSCORES_KEY, JSON.stringify(list));
+}
+
+function getHighscoreRankIndex(list, candidateScore) {
+  if (list.length < MAX_HIGHSCORES) return list.length;
+  const idx = list.findIndex(e => candidateScore > e.score);
+  return idx === -1 ? -1 : idx;
+}
+
+function renderHighscoreList(listEl, entries, highlightIndex) {
+  listEl.textContent = '';
+  if (entries.length === 0) {
+    const li = document.createElement('li');
+    li.className = 'highscore-empty';
+    li.textContent = 'Sin récords aún';
+    listEl.appendChild(li);
+    return;
+  }
+  entries.forEach((entry, i) => {
+    const li = document.createElement('li');
+    if (i === highlightIndex) li.classList.add('highscore-highlight');
+
+    const rank = document.createElement('span');
+    rank.className = 'highscore-rank';
+    rank.textContent = `${i + 1}.`;
+
+    const name = document.createElement('span');
+    name.className = 'highscore-name';
+    name.textContent = entry.name;
+    name.title = `${entry.name} — Líneas: ${entry.lines ?? 0}, Combo máx: ${entry.maxCombo ?? 0}`;
+
+    const scoreSpan = document.createElement('span');
+    scoreSpan.className = 'highscore-score';
+    scoreSpan.textContent = entry.score.toLocaleString();
+
+    li.appendChild(rank);
+    li.appendChild(name);
+    li.appendChild(scoreSpan);
+    listEl.appendChild(li);
+  });
+}
+
+function refreshHighscoreDisplays(highlightIndex = -1) {
+  const list = loadHighscores();
+  renderHighscoreList(highscoreListEl, list, -1);
+  renderHighscoreList(overlayHighscoreListEl, list, highlightIndex);
+}
+
+function resetHighscores() {
+  localStorage.removeItem(HIGHSCORES_KEY);
+  refreshHighscoreDisplays();
+}
+
+function saveNewHighscore() {
+  // Guard: solo se puede guardar mientras el juego terminó y hay un récord
+  // pendiente de esta partida (evita registros espurios si se reinicia
+  // el juego mientras el formulario seguía visible/enfocado).
+  if (!gameOver || !pendingHighscoreEntry) return;
+  const name = (highscoreNameInput.value || 'Jugador').trim().slice(0, 12) || 'Jugador';
+  const list = loadHighscores();
+  const entry = { ...pendingHighscoreEntry, name };
+  list.splice(pendingHighscoreIndex === -1 ? list.length : pendingHighscoreIndex, 0, entry);
+  list.sort((a, b) => b.score - a.score);
+  const trimmed = list.slice(0, MAX_HIGHSCORES);
+  saveHighscores(trimmed);
+  const newIndex = trimmed.findIndex(e => e === entry);
+  newHighscoreForm.classList.add('hidden');
+  pendingHighscoreEntry = null;
+  refreshHighscoreDisplays(newIndex);
+}
+
 function endGame() {
   gameOver = true;
   cancelAnimationFrame(animId);
   overlayTitle.textContent = 'GAME OVER';
   overlayScore.textContent = `Puntuación: ${score.toLocaleString()}`;
   overlay.classList.remove('hidden');
+
+  const list = loadHighscores();
+  pendingHighscoreIndex = getHighscoreRankIndex(list, score);
+  if (pendingHighscoreIndex !== -1 && score > 0) {
+    // Snapshot de los datos de esta partida: evita guardar valores
+    // incorrectos si el jugador reinicia antes de confirmar el nombre.
+    pendingHighscoreEntry = { score, lines, maxCombo };
+    newHighscoreForm.classList.remove('hidden');
+    highscoreNameInput.disabled = false;
+    saveHighscoreBtn.disabled = false;
+    highscoreNameInput.value = '';
+    refreshHighscoreDisplays(-1);
+    setTimeout(() => highscoreNameInput.focus(), 0);
+  } else {
+    pendingHighscoreEntry = null;
+    newHighscoreForm.classList.add('hidden');
+    refreshHighscoreDisplays(-1);
+  }
 }
 
 function togglePause() {
@@ -271,11 +387,18 @@ function init() {
   gameOver = false;
   dropInterval = 1000;
   dropAccum = 0;
+  combo = 0;
+  maxCombo = 0;
+  pendingHighscoreIndex = -1;
+  pendingHighscoreEntry = null;
   lastTime = performance.now();
   next = randomPiece();
   spawn();
   updateHUD();
   overlay.classList.add('hidden');
+  newHighscoreForm.classList.add('hidden');
+  highscoreNameInput.disabled = true;
+  saveHighscoreBtn.disabled = true;
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
@@ -306,6 +429,13 @@ document.addEventListener('keydown', e => {
 });
 
 restartBtn.addEventListener('click', init);
+resetHighscoresBtn.addEventListener('click', resetHighscores);
+saveHighscoreBtn.addEventListener('click', saveNewHighscore);
+highscoreNameInput.addEventListener('keydown', e => {
+  if (e.code === 'Enter') saveNewHighscore();
+});
+
+refreshHighscoreDisplays();
 
 function readGridColor() {
   return getComputedStyle(document.documentElement).getPropertyValue('--color-grid-line').trim();

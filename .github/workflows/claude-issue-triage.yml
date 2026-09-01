@@ -1,0 +1,31 @@
+name: Claude Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Issue Triage
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Analiza el issue #${{ github.event.issue.number }} de este repositorio (un juego de Tetris en HTML5 Canvas/CSS/JS vanilla, ver CLAUDE.md para la arquitectura).
+
+            1. Revisa el título y la descripción del issue.
+            2. Elige los labels más apropiados de los ya existentes en el repo (bug, enhancement, documentation, question, duplicate, invalid, wontfix, help wanted, good first issue, accessibility) y aplícalos con `gh issue edit ${{ github.event.issue.number }} --add-label "..."`. No agregues labels que ya estén presentes ni crees labels nuevos.
+            3. Publica un comentario en el issue (`gh issue comment ${{ github.event.issue.number }} --body "..."`) en español con un diagnóstico general: resumen del problema, área del código probablemente involucrada (game.js / index.html / style.css), causa probable, y puntos clave a tener en cuenta para implementar la solución. Si ya existe un comentario de diagnóstico tuyo en este issue, edítalo en vez de crear uno nuevo.
+          claude_args: '--allowedTools "Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh issue view:*),Bash(gh issue list:*)"'

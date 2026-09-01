@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,6 +13,14 @@
       <canvas id="board" width="300" height="600"></canvas>
 
       <aside class="panel">
+        <div class="panel-section theme-toggle">
+          <span class="label">MODO CLARO</span>
+          <label class="switch">
+            <input type="checkbox" id="theme-toggle" aria-label="Alternar modo claro/oscuro" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
         <div class="panel-section">
           <span class="label">SCORE</span>
           <span class="value" id="score">0</span>

@@ -132,6 +132,26 @@ body {
   justify-content: space-between;
 }
 
+/* ---- Selector de skin visual de bloques ---- */
+.skin-select {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+#skin-select {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-value);
+  background: var(--color-board-bg);
+  border: 1px solid var(--color-board-border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+
 .switch {
   position: relative;
   display: inline-block;

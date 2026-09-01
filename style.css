@@ -24,6 +24,12 @@
   --color-restart-bg: #7aa2f7;
   --color-restart-text: #0f0f17;
   --color-restart-hover: #9bbdff;
+  --color-highscore-bg: #1a1a25;
+  --color-highscore-highlight-bg: rgba(122, 162, 247, 0.25);
+  --color-highscore-highlight-text: #9bbdff;
+  --color-input-bg: #14141e;
+  --color-input-border: #3a3a5a;
+  --color-input-text: #e0e0e0;
 }
 
 [data-theme="light"] {
@@ -46,6 +52,12 @@
   --color-restart-bg: #3d5a99;
   --color-restart-text: #ffffff;
   --color-restart-hover: #5c7ab8;
+  --color-highscore-bg: #ffffff;
+  --color-highscore-highlight-bg: rgba(61, 90, 153, 0.15);
+  --color-highscore-highlight-text: #3d5a99;
+  --color-input-bg: #ffffff;
+  --color-input-border: #b8b8cc;
+  --color-input-text: #24242f;
 }
 
 body {
@@ -250,5 +262,115 @@ kbd {
 }
 
 #restart-btn:hover {
+  background: var(--color-restart-hover);
+}
+
+/* ---- Tabla de récords ---- */
+.highscore-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  color: var(--color-fg);
+  background: var(--color-highscore-bg);
+  border: 1px solid var(--color-board-border);
+  border-radius: 4px;
+  padding: 6px 8px;
+  width: 100%;
+  max-width: 240px;
+}
+
+.highscore-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.highscore-list .highscore-empty {
+  color: var(--color-controls-text);
+  justify-content: center;
+}
+
+.highscore-list .highscore-rank {
+  color: var(--color-label);
+  margin-right: 4px;
+}
+
+.highscore-list .highscore-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.highscore-highlight {
+  background: var(--color-highscore-highlight-bg);
+  color: var(--color-highscore-highlight-text);
+  font-weight: 700;
+}
+
+.reset-btn {
+  margin-top: 4px;
+  background: transparent;
+  color: var(--color-controls-text);
+  border: 1px solid var(--color-kbd-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.reset-btn:hover {
+  background: var(--color-kbd-bg);
+  color: var(--color-fg);
+}
+
+/* ---- Formulario de nuevo récord ---- */
+.new-highscore-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.new-highscore-form.hidden {
+  display: none;
+}
+
+.new-highscore-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+#highscore-name-input {
+  background: var(--color-input-bg);
+  color: var(--color-input-text);
+  border: 1px solid var(--color-input-border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 13px;
+  width: 140px;
+}
+
+#save-highscore-btn {
+  background: var(--color-restart-bg);
+  color: var(--color-restart-text);
+  border: none;
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+#save-highscore-btn:hover {
   background: var(--color-restart-hover);
 }

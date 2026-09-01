@@ -39,6 +39,12 @@
           <canvas id="next-canvas" width="120" height="120"></canvas>
         </div>
 
+        <div class="panel-section highscores">
+          <span class="label">RÉCORDS</span>
+          <ol id="highscore-list" class="highscore-list"></ol>
+          <button id="reset-highscores-btn" class="reset-btn">Borrar récords</button>
+        </div>
+
         <div class="panel-section controls">
           <span class="label">CONTROLS</span>
           <ul>
@@ -56,6 +62,17 @@
       <div class="overlay-box">
         <p id="overlay-title">GAME OVER</p>
         <p id="overlay-score"></p>
+
+        <div id="new-highscore-form" class="new-highscore-form hidden">
+          <span class="label">¡Nuevo récord! Ingresa tu nombre:</span>
+          <div class="new-highscore-input-row">
+            <input type="text" id="highscore-name-input" maxlength="12" placeholder="Nombre" aria-label="Nombre del jugador" />
+            <button id="save-highscore-btn">Guardar</button>
+          </div>
+        </div>
+
+        <ol id="overlay-highscore-list" class="highscore-list"></ol>
+
         <button id="restart-btn">Reiniciar</button>
       </div>
     </div>
